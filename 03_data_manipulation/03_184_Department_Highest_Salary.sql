@@ -68,23 +68,42 @@ Output:
 Explanation: Max and Jim both have the highest salary in the IT department and Henry has the highest salary in the Sales department.
 
 """
-
-
-import pandas as pd
-def department_highest_salary(employee: pd.DataFrame, department: pd.DataFrame) -> pd.DataFrame:
-
-    # merge 2 df using inner join
-    employee_merged_dept = pd.merge(employee, department, how='inner', left_on=['departmentId'], right_on=['id'])
-    
-    # get the max salary of each dept., put it in a separate df, which will be used to be merged late
-    dept_max_sal = employee_merged_dept.groupby(['departmentId'], as_index=False).max()
-    dept_max_sal_final = pd.DataFrame({'Department':dept_max_sal['name_y'], 'Salary':dept_max_sal['salary']})
-
-    # get a df group by dept_id and emp_id to get the duplicates 
-    res_df = employee_merged_dept.groupby(['departmentId','id_x'], as_index=False).max()
-    res_final = pd.DataFrame({'Department':res_df['name_y'], 'Employee':res_df['name_x'], 'Salary':res_df['salary']})
-    res_final.sort_values(by=['Department','Salary'], ascending=[True, False])
-
-    # then finally merge the 2 df from group by results, to get all the max salary(s) of each dept
-    ans_res_df = pd.merge(res_final, dept_max_sal_final, how='inner', on=['Department', 'Salary'])
-    return ans_res_df
+-- Write your PostgreSQL query statement below
+with combined_info as(
+    select
+        dp.name as "Department"
+        , dp.id as "Dept_id"
+        , em.name as "Employee"
+        , em.salary as "Salary"
+    from
+        Employee em
+        join Department dp on em.departmentId = dp.id
+)
+, dept_wise_max_salary as(
+    select
+        "combined_info"."Department"
+        , max("combined_info"."Salary") as "max_sal"
+    from
+        combined_info
+    group by
+        1
+)
+, semi_final as(
+    select
+        combined_info."Department"
+        , combined_info."Employee"
+        , combined_info."Salary"
+        , dept_wise_max_salary."max_sal"
+    from
+        combined_info
+        join dept_wise_max_salary on combined_info."Department" = dept_wise_max_salary."Department"
+)
+select
+     semi_final."Department"
+    , semi_final."Employee"
+    , semi_final."Salary"
+from
+    semi_final
+where
+    semi_final."Salary" = semi_final."max_sal"
+;
