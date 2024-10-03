@@ -55,10 +55,10 @@ def rearrange_products_table(products: pd.DataFrame) -> pd.DataFrame:
     products_np_list = products.to_numpy() # converting the df to list to iterate over each entries
 
     res_df = pd.DataFrame({'product_id':int(), 'store':[], 'price':int()}) # declare the resulting df with demanding columns
-    for idx, product in enumerate(products_np_list):
+    for product in products_np_list:
         price_list = product[1:].tolist() # the 1st col was for product_id, after that, everything was price list each row of given df
         product_id_list = [int(product[0]) for i in price_list] # copied the the product_id as per the length of price_list
-        store_name_list = [f'store{it+1}' for it,price in enumerate(price_list)] # copied the store name as per the price_list and store number was retrived from index
+        store_name_list = [f'store{it+1}' for it,_ in enumerate(price_list)] # copied the store name as per the price_list and store number was retrived from index
         temp_df = pd.DataFrame({'product_id': product_id_list, 'store': store_name_list, 'price': price_list}) # created a temporary df to concat with the resulting df
         res_df = pd.concat(objs=[res_df, temp_df] # concat, ignoring the index
                         , ignore_index=True
